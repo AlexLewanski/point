@@ -1,4 +1,4 @@
-# **POInT**: **P**robabilistic **O**rigin **In**ference using **T**rees
+# *POInT*: *P*robabilistic *O*rigin *In*ference using *T*rees
 
 ## Table of Contents
 - [Author information](#author-information)
@@ -15,7 +15,7 @@ Name (ORCID link)| Contact | Affiliation(s)
 
 
 ## Overview
-The `point` repo holds the R package that I am currently calling POInT: Probabilistic Origin Inference using Trees. This package (and the method it implements) is early in development so check back later when it is more developed and tested!
+The `point` repo holds the R package that I am currently calling POInT: **P**robabilistic **O**rigin **In**ference using **T**rees. This package (and the method it implements) is early in development so check back later when it is more developed and tested!
 
 
 ## Installation
@@ -32,13 +32,14 @@ Stay tuned for instructions on using the package when it is ready for use.
 
 
 ## Code organization
-Functions in `R/` are (loosely) organized by topic:
+Functions in [`R/`](R/) are loosely organized by topic:
 
-- `em_funcs.R`: The core functions for estimating geographic origin via expectation-maximization (EM). This includes implementations of the EM algorithms and likelihood calculations used in these functions.
-- `em_processing.R`: Processing the EM results including extracting the top EM run(s) and matching groups across runs. These functions are used within the EM algorithms (stored in `em_funcs.R`).
-- `mvn_calcs.R`: Functionality for calculating the conditional normal distributions from the trees and coordinate information.
-- `single_loc_est.R`: Some functions for estimating a single origin (when an EM algorithm isn't required).
-- `tree_root_rates.R`: Estimating root locations and Brownian rate matrices.
+- [`em_funcs.R`](R/em_funcs.R): Core functions for estimating geographic origins with expectation-maximization (EM), including the EM algorithms and related likelihood calculations.
+- [`em_processing.R`](R/em_processing.R): Functions for processing EM results, including selecting top runs and matching groups across runs.
+- [`mvn_calcs.R`](R/mvn_calcs.R): Functions for calculating conditional normal distributions from trees and coordinate data.
+- [`single_loc_est.R`](R/single_loc_est.R): Supporting functions for estimating a single origin without an EM algorithm.
+- [`tree_root_rates.R`](R/tree_root_rates.R): Functions for estimating root locations and Brownian rate matrices.
+
 
 Function documentation is maintained with the functions using roxygen comments.
 
