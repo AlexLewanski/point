@@ -19,7 +19,7 @@ The `point` repo holds the R package that I am currently calling POInT: **P**rob
 
 
 ## Installation
-To install the current version of `POInT`, you can use the `devtools` package:
+To install the current version of the `point` package, you can use the [`devtools`](https://devtools.r-lib.org) package:
 
 ```r
 install.packages("devtools")
