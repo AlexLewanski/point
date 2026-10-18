@@ -1,0 +1,16 @@
+Package: point
+Title: Estimate Geographic Origins Using Genome-wide Genealogies
+Version: 0.0.0.9000
+Authors@R: 
+    person("Alexander", "Lewanski", , "allewanski@gmail.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+License: GPL (>= 3)
+Config/roxygen2/version: 8.1.1
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports: 
+    ape,
+    Matrix,
+    mvtnorm,
+    stats,
+    utils
