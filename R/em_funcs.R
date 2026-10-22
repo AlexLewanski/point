@@ -612,7 +612,7 @@ em_softassign <- function(cond_mean,
     #if the current loglik is less than the (negative) tolerance, throw an error
     if (loglik_diff < -lik_tol) {
       stop(sprintf("Log-likelihood decreased at iteration %d: previous = %.12g, current = %.12g, difference = %.12g (tol = %.5g).",
-                   stp, previous_loglik, current_loglik, loglik_change, likelihood_tol), call. = FALSE)
+                   stp, previous_loglik, current_loglik, loglik_diff, likelihood_tol), call. = FALSE)
     }
 
     #if the difference in log liks is below the stopping threshold, break out of loop
