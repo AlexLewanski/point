@@ -101,18 +101,17 @@ kpp <- function(cond_mean_list, k) {
 
   for (loc_ind in 2:k) {
 
-    #2. Calculate the probability of each node to their most probable origin
-
+    #2. Calculate the distance of each conditional mean coordinate to each origin coordinate (and take the minimum)
     loc_mat_subset <- loc_mat[!is.na(loc_mat[,1]),, drop = FALSE]
-
     min_dist_vec <- apply(cond_mean_df, 1, function(x, origin_mat) {min(sqrt(rowSums((sweep(origin_mat, 2, x, "-"))^2)))}, origin_mat = loc_mat_subset)
 
-    weights <- min_dist_vec^2
-    weights[selected_indices[1:(loc_ind - 1)]] <- 0 #prevent previous conditional means from being chosen
-    sampled_index <- sample.int(n_nodes, size = 1, prob = weights)
-    selected_indices[loc_ind] <- sampled_index
+    #3. Select next coordinate probabilistically with coordinates weighted by squared distance
+    weights <- min_dist_vec^2 #weights are the squared distances (don't need to normalize because sample.int does that automatically)
+    weights[selected_indices[1:(loc_ind - 1)]] <- 0 #prevent previous conditional means from being chosen (by setting weight to 0)
+    sampled_index <- sample.int(n_nodes, size = 1, prob = weights) #sample the index to use for the new origin coordinates
+    selected_indices[loc_ind] <- sampled_index #add the sampled index
 
-    loc_mat[loc_ind,] <- cond_mean_df[sampled_index,]
+    loc_mat[loc_ind,] <- cond_mean_df[sampled_index,] #add the new origin coordinate to loc_mat
 
   }
 
