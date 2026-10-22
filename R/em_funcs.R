@@ -599,27 +599,24 @@ em_softassign <- function(cond_mean,
       next
     }
 
-    #if the current lik is less than the previous lik, throw an error
-    if (loglik_list[[stp]] < loglik_list[[stp - 1]] ) {
-      #message('The likelihood decreased. Halting estimation and outputting some info.')
-      stop('The likelihood decreased. Halting estimation and outputting some info.')
-      ##Currently, I am not outputting things associated with stop call. But I could
-      ##be informative to do this to diagnose issues if the stop call is triggered.
-      # return(
-      #   list(
-      #     newlik = loglik_list[[stp]],
-      #     oldlik = loglik_list[[stp - 1]],
-      #     group_membership_list = weight_list,
-      #     xvec_list = xvec_list,
-      #     q_list = q_list
-      #   )
-      # )
+    #check to see if the likelihood decreases
+    previous_loglik <- loglik_list[[stp - 1]]
+    current_loglik <- loglik_list[[stp]]
+    loglik_diff <- current_loglik - previous_loglik #this shouldn't be negative
 
+    #currently using a "sliding scale" tolerance that reflects the magnitude of
+    #the logliks. The minimum threshold is 1e-10. If a loglik is bigger than
+    #1, the lik_tol increases slightly to reflect this magnitude
+    lik_tol <- 1e-10 * max(1, abs(previous_loglik), abs(current_loglik))
+
+    #if the current loglik is less than the (negative) tolerance, throw an error
+    if (loglik_diff < -lik_tol) {
+      stop(sprintf("Log-likelihood decreased at iteration %d: previous = %.12g, current = %.12g, difference = %.12g (tol = %.5g).",
+                   stp, previous_loglik, current_loglik, loglik_change, likelihood_tol), call. = FALSE)
     }
 
     #if the difference in log liks is below the stopping threshold, break out of loop
-    if ( (loglik_list[[stp]] - loglik_list[[stp - 1]]) <= conv_thresh) {
-
+    if (loglik_diff <= conv_thresh) {
       convergence <- TRUE
       break
     }
