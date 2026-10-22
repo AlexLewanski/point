@@ -10,7 +10,8 @@ em_hardassign(
   k,
   max_stp,
   conv_thresh,
-  sp_bounds,
+  init_method = "random",
+  sp_bounds = NULL,
   starting_location_seed = NULL
 )
 }
@@ -24,6 +25,8 @@ em_hardassign(
 \item{max_stp}{The maximum number of steps allowed in the EM algorithm.}
 
 \item{conv_thresh}{The difference in observed likelihoods between runs to use as the convergence threshold.}
+
+\item{init_method}{The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").}
 
 \item{sp_bounds}{List of two vectors indicating minimum and maximum x and y values.}
 

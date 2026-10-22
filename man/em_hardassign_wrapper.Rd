@@ -12,7 +12,8 @@ em_hardassign_wrapper(
   max_stp = 20,
   conv_thresh = 1e-05,
   lik_equality_tol = 1e-06,
-  sp_bounds,
+  init_method = "random",
+  sp_bounds = NULL,
   retain_all_outputs = TRUE,
   starting_location_seed = NULL
 )
@@ -31,6 +32,8 @@ em_hardassign_wrapper(
 \item{conv_thresh}{The difference in observed likelihoods between runs to use as the convergence threshold.}
 
 \item{lik_equality_tol}{Value under which likelihoods are considered equivalent.}
+
+\item{init_method}{The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").}
 
 \item{sp_bounds}{List of two vectors indicating minimum and maximum x and y values.}
 

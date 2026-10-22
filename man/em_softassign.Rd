@@ -10,7 +10,8 @@ em_softassign(
   k,
   max_stp,
   conv_thresh,
-  sp_bounds,
+  init_method = "random",
+  sp_bounds = NULL,
   starting_location_seed = NULL
 )
 }

@@ -1,3 +1,126 @@
+#' Create initial origin coordinates
+#'
+#' @param cond_mean_list List of conditional means. This is only required for method = "kpp"
+#' @param k The number of origins.
+#' @param method The method to use for coordinate initialization. The two options are either "random" (random coordinates selected within the sp_bounds) or "kpp", which implements the k-means++ algorithm on the conditional means
+#' @param sp_bounds The boundaries to choose the initial coordinates. This is only required for method = "random"
+#'
+#' @returns A matrix (col = 2, row = k) of initial coordinates with x values in the first column and y values in the second.
+#' @export
+#'
+sample_locs <- function(cond_mean_list = NULL, k, method = 'random', sp_bounds = NULL) {
+
+  method <- match.arg(arg = method, choices = c('random', 'kpp'), several.ok = FALSE)
+
+  #check K
+  if (length(k) != 1L ||
+      !is.numeric(k) ||
+      is.na(k) ||
+      !is.finite(k) ||
+      k <= 0 ||
+      k != floor(k)) {
+    stop("`k` must be a single positive integer.", call. = FALSE)
+  }
+
+  #check random inputs
+  if (identical(method, "random")) {
+    if (!is.list(sp_bounds) ||
+        !all(c("x", "y") %in% names(sp_bounds))) {
+      stop("For method = 'random', `sp_bounds` must be a list with x and y bounds.",
+           call. = FALSE)
+    }
+
+    x_bounds <- sp_bounds[["x"]]
+    y_bounds <- sp_bounds[["y"]]
+
+    x_check <- is.numeric(x_bounds) &&
+      length(x_bounds) == 2L &&
+      all(is.finite(x_bounds)) &&
+      x_bounds[1] <= x_bounds[2]
+
+    y_check <- is.numeric(y_bounds) &&
+      length(y_bounds) == 2L &&
+      all(is.finite(y_bounds)) &&
+      y_bounds[1] <= y_bounds[2]
+
+    if (!x_check || !y_check) {
+      stop("The x and y bounds must each contain two finite, ordered numbers.",
+           call. = FALSE)
+    }
+  }
+
+  initial_locs <- switch(method,
+                         'random' = {
+                           cbind(stats::runif(k,min=sp_bounds$x[1],max=sp_bounds$x[2]),
+                                 stats::runif(k,min=sp_bounds$y[1],max=sp_bounds$y[2]))
+                         },
+                         'kpp' = {
+                           kpp(cond_mean_list = cond_mean_list, k = k)
+                         })
+
+  return(initial_locs)
+}
+
+
+
+
+#' Create initial origin coordinates using k-means++ algorithm
+#'
+#' @param cond_mean_list cond_mean_list List of conditional means.
+#' @param k The number of origins.
+#'
+#' @returns A matrix (col = 2, row = k) of initial coordinates with x values in the first column and y values in the second.
+#' @export
+#'
+kpp <- function(cond_mean_list, k) {
+
+  if (length(k) != 1L ||
+      !is.numeric(k) ||
+      is.na(k) ||
+      !is.finite(k) ||
+      k <= 0 ||
+      k != floor(k)) {
+    stop("`k` must be a single positive integer.", call. = FALSE)
+  }
+
+  cond_mean_df <- do.call(rbind, lapply(cond_mean_list, function(x) matrix(as.vector(x), byrow = TRUE, ncol = 2)))
+  n_nodes <- nrow(cond_mean_df)
+
+  if (k > n_nodes) {
+    stop("`k` cannot be more than the number of nodes.", call. = FALSE)
+  }
+
+  loc_mat <- matrix(data = NA, nrow = k, ncol = 2)
+
+  selected_indices <- integer(k)
+
+  selected_indices[1] <- sample.int(n_nodes, size = 1)
+  loc_mat[1, ] <- cond_mean_df[selected_indices[1], ]
+
+  if (k < 2) return(loc_mat)
+
+  for (loc_ind in 2:k) {
+
+    #2. Calculate the probability of each node to their most probable origin
+
+    loc_mat_subset <- loc_mat[!is.na(loc_mat[,1]),, drop = FALSE]
+
+    min_dist_vec <- apply(cond_mean_df, 1, function(x, origin_mat) {min(sqrt(rowSums((sweep(origin_mat, 2, x, "-"))^2)))}, origin_mat = loc_mat_subset)
+
+    weights <- min_dist_vec^2
+    weights[selected_indices[1:(loc_ind - 1)]] <- 0 #prevent previous conditional means from being chosen
+    sampled_index <- sample.int(n_nodes, size = 1, prob = weights)
+    selected_indices[loc_ind] <- sampled_index
+
+    loc_mat[loc_ind,] <- cond_mean_df[sampled_index,]
+
+  }
+
+  return(loc_mat)
+}
+
+
+
 #' Multi-run wrapper for running expectation-maximization using hard node assignments
 #'
 #' @param times The number of times to run the EM algorithm.
@@ -7,6 +130,7 @@
 #' @param max_stp The maximum number of steps allowed in the EM algorithm.
 #' @param conv_thresh The difference in observed likelihoods between runs to use as the convergence threshold.
 #' @param lik_equality_tol Value under which likelihoods are considered equivalent.
+#' @param init_method The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").
 #' @param sp_bounds List of two vectors indicating minimum and maximum x and y values.
 #' @param retain_all_outputs Boolean indicating whether or not to retain all outputs
 #' @param starting_location_seed Optional seed to set when generating initial coordinates.
@@ -21,7 +145,8 @@ em_hardassign_wrapper <- function(times = 1,
                                   max_stp = 20,
                                   conv_thresh = 1e-5,
                                   lik_equality_tol = 1e-6,
-                                  sp_bounds,
+                                  init_method = "random",
+                                  sp_bounds = NULL,
                                   retain_all_outputs = TRUE,
                                   starting_location_seed = NULL) {
   #recover()
@@ -38,6 +163,7 @@ em_hardassign_wrapper <- function(times = 1,
                                      k = k,
                                      max_stp = max_stp,
                                      conv_thresh = conv_thresh,
+                                     init_method = init_method,
                                      sp_bounds = sp_bounds,
                                      starting_location_seed = NULL
     )
@@ -67,6 +193,7 @@ em_hardassign_wrapper <- function(times = 1,
 #' @param max_stp The maximum number of steps allowed in the EM algorithm.
 #' @param conv_thresh The difference in observed likelihoods between runs to use as the convergence threshold.
 #' @param lik_equality_tol Value under which likelihoods are considered equivalent.
+#' @param init_method The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").
 #' @param sp_bounds List of two vectors indicating minimum and maximum x and y values.
 #' @param retain_all_outputs Boolean indicating whether or not to retain all outputs
 #' @param starting_location_seed Optional seed to set when generating initial coordinates.
@@ -81,7 +208,8 @@ em_softassign_wrapper <- function(times = 1,
                                   max_stp = 20,
                                   conv_thresh = 1e-5,
                                   lik_equality_tol = 1e-6,
-                                  sp_bounds,
+                                  init_method = "random",
+                                  sp_bounds = NULL,
                                   retain_all_outputs = TRUE,
                                   starting_location_seed = NULL) {
   #recover()
@@ -99,6 +227,7 @@ em_softassign_wrapper <- function(times = 1,
                                      k = k,
                                      max_stp = max_stp,
                                      conv_thresh = conv_thresh,
+                                     init_method = init_method,
                                      sp_bounds = sp_bounds,
                                      starting_location_seed = NULL
     )
@@ -128,6 +257,7 @@ em_softassign_wrapper <- function(times = 1,
 #' @param k The number of ancestry groups to estimate.
 #' @param max_stp The maximum number of steps allowed in the EM algorithm.
 #' @param conv_thresh The difference in observed likelihoods between runs to use as the convergence threshold.
+#' @param init_method The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").
 #' @param sp_bounds List of two vectors indicating minimum and maximum x and y values.
 #' @param starting_location_seed Optional seed to set when generating initial coordinates.
 #'
@@ -139,7 +269,8 @@ em_hardassign <- function(cond_mean,
                           k,
                           max_stp,
                           conv_thresh,
-                          sp_bounds,
+                          init_method = 'random',
+                          sp_bounds = NULL,
                           starting_location_seed = NULL) {
 
   #check to make sure max_stp is at least 3
@@ -186,8 +317,10 @@ em_hardassign <- function(cond_mean,
   }
 
   repeat {
-    Xold <- as.vector(t(cbind(stats::runif(k,min=sp_bounds$x[1],max=sp_bounds$x[2]),
-                              stats::runif(k,min=sp_bounds$y[1],max=sp_bounds$y[2]))))
+    Xold <- as.vector(t(sample_locs(cond_mean_list = cond_mean, k = k, method = init_method, sp_bounds = sp_bounds)))
+
+    # Xold <- as.vector(t(cbind(stats::runif(k,min=sp_bounds$x[1],max=sp_bounds$x[2]),
+    #                           stats::runif(k,min=sp_bounds$y[1],max=sp_bounds$y[2]))))
     if (k == 1) break
 
     group_info_list <- list()
@@ -341,7 +474,8 @@ em_softassign <- function(cond_mean,
                           k,
                           max_stp,
                           conv_thresh,
-                          sp_bounds,
+                          init_method = 'random',
+                          sp_bounds = NULL,
                           starting_location_seed = NULL) {
 
   #recover()
@@ -383,8 +517,11 @@ em_softassign <- function(cond_mean,
     set.seed(starting_location_seed)
   }
 
-  Xold <- as.vector(t(cbind(stats::runif(k, min = sp_bounds$x[1], max = sp_bounds$x[2]),
-                            stats::runif(k, min = sp_bounds$y[1], max = sp_bounds$y[2]))))
+  Xold <- as.vector(t(sample_locs(cond_mean_list = cond_mean, k = k, method = init_method, sp_bounds = sp_bounds)))
+
+  #Xold <- as.vector(t(cbind(stats::runif(k, min = sp_bounds$x[1], max = sp_bounds$x[2]),
+  #                          stats::runif(k, min = sp_bounds$y[1], max = sp_bounds$y[2]))))
+
   #initial param vals
   xvec_list[[1]] <- Xold
 
