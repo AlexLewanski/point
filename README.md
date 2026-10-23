@@ -36,7 +36,7 @@ Functions in [`R/`](R/) are loosely organized by topic:
 
 - [`em_helpers.R`](R/em_helpers.R): Helper functions for the EM algorithms such as likelihood calculations.
 - [`em_location_initialization.R`](R/em_location_initialization.R): Initialization of origin locations for EM estimation.
-- [`em_main.R`](R/em_main.R): Core functions for estimating geographic origins with expectation-maximization (EM), including the EM algorithms and wrappers to run and process the EM algorithms mulitple times.
+- [`em_main.R`](R/em_main.R): Core functions for estimating geographic origins with expectation-maximization (EM), including the EM algorithms and wrappers to run and process the EM algorithms multiple times.
 - [`em_processing.R`](R/em_processing.R): Processing EM results including selecting top runs and matching groups across runs.
 - [`mvn_calcs.R`](R/mvn_calcs.R): Functions for calculating conditional normal distributions from trees and coordinate data.
 - [`single_loc_est.R`](R/single_loc_est.R): Supporting functions for estimating a single origin without an EM algorithm.
