@@ -15,7 +15,8 @@ em_hardassign_wrapper(
   init_method = "random",
   sp_bounds = NULL,
   retain_all_outputs = TRUE,
-  starting_location_seed = NULL
+  starting_location_seed = NULL,
+  n_cand = 3
 )
 }
 \arguments{
@@ -33,13 +34,15 @@ em_hardassign_wrapper(
 
 \item{lik_equality_tol}{Value under which likelihoods are considered equivalent.}
 
-\item{init_method}{The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").}
+\item{init_method}{The method to use for initialization of the origin coordinates. The options are "random", "kpp", or "greedy_kpp". The latter two implement k-means++ or greedy k-means++ on the conditional means (default: "random").}
 
 \item{sp_bounds}{List of two vectors indicating minimum and maximum x and y values.}
 
 \item{retain_all_outputs}{Boolean indicating whether or not to retain all outputs}
 
 \item{starting_location_seed}{Optional seed to set when generating initial coordinates.}
+
+\item{n_cand}{The number of candidate origins to evaluate during each round of choosing origins. This is only used when method = "greedy_kpp".}
 }
 \value{
 A list of results from the EM runs.

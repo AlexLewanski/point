@@ -2,7 +2,7 @@
 % Please edit documentation in R/em_funcs.R
 \name{kpp}
 \alias{kpp}
-\title{Create initial origin coordinates using k-means++ algorithm}
+\title{Create initial origin coordinates using k-means++}
 \usage{
 kpp(cond_mean_list, k)
 }
@@ -15,5 +15,5 @@ kpp(cond_mean_list, k)
 A matrix (col = 2, row = k) of initial coordinates with x values in the first column and y values in the second.
 }
 \description{
-Create initial origin coordinates using k-means++ algorithm
+Create initial origin coordinates using k-means++
 }

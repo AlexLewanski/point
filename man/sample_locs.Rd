@@ -4,16 +4,24 @@
 \alias{sample_locs}
 \title{Create initial origin coordinates}
 \usage{
-sample_locs(cond_mean_list = NULL, k, method = "random", sp_bounds = NULL)
+sample_locs(
+  cond_mean_list = NULL,
+  k,
+  method = "random",
+  sp_bounds = NULL,
+  n_cand = 3
+)
 }
 \arguments{
-\item{cond_mean_list}{List of conditional means. This is only required for method = "kpp"}
+\item{cond_mean_list}{List of conditional means. This is only required for method = "kpp" or "greedy_kpp"}
 
 \item{k}{The number of origins.}
 
-\item{method}{The method to use for coordinate initialization. The two options are either "random" (random coordinates selected within the sp_bounds) or "kpp", which implements the k-means++ algorithm on the conditional means}
+\item{method}{The method to use for coordinate initialization. The three options are "random" (random coordinates selected within the sp_bounds), or "kpp" (k-means++ on the conditional means), or "greedy_kpp" (greedy k-means++ on the conditional means).}
 
 \item{sp_bounds}{The boundaries to choose the initial coordinates. This is only required for method = "random"}
+
+\item{n_cand}{The number of candidate origins to evaluate during each round of choosing origins. This is only used when method = "greedy_kpp".}
 }
 \value{
 A matrix (col = 2, row = k) of initial coordinates with x values in the first column and y values in the second.

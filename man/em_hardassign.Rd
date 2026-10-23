@@ -12,7 +12,8 @@ em_hardassign(
   conv_thresh,
   init_method = "random",
   sp_bounds = NULL,
-  starting_location_seed = NULL
+  starting_location_seed = NULL,
+  n_cand = 3
 )
 }
 \arguments{
@@ -26,11 +27,13 @@ em_hardassign(
 
 \item{conv_thresh}{The difference in observed likelihoods between runs to use as the convergence threshold.}
 
-\item{init_method}{The method to use for initialization of the origin coordinates. The options are "random" or "kpp", which implements the k-means++ algorithm on the conditional means (default: "random").}
+\item{init_method}{The method to use for initialization of the origin coordinates. The options are "random", "kpp", or "greedy_kpp". The latter two implement k-means++ or greedy k-means++ on the conditional means (default: "random").}
 
 \item{sp_bounds}{List of two vectors indicating minimum and maximum x and y values.}
 
 \item{starting_location_seed}{Optional seed to set when generating initial coordinates.}
+
+\item{n_cand}{The number of candidate origins to evaluate during each round of choosing origins. This is only used when method = "greedy_kpp".}
 }
 \value{
 A list of outputs from the EM run.
