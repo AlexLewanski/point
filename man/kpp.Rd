@@ -2,18 +2,22 @@
 % Please edit documentation in R/em_funcs.R
 \name{kpp}
 \alias{kpp}
-\title{Create initial origin coordinates using k-means++}
+\title{Create initial origin coordinates using k-means++ or greedy k-means++}
 \usage{
-kpp(cond_mean_list, k)
+kpp(cond_mean_list, k, type = "standard", n_cand = 3)
 }
 \arguments{
 \item{cond_mean_list}{cond_mean_list List of conditional means.}
 
 \item{k}{The number of origins.}
+
+\item{type}{The approach to use for coordinate generation. Either the standard k-means++ ('standard'; the default) or the greedy k-means++.}
+
+\item{n_cand}{The number of candidate origins to evaluate during each round of choosing origins. This is only relevant when type = 'greedy'.}
 }
 \value{
 A matrix (col = 2, row = k) of initial coordinates with x values in the first column and y values in the second.
 }
 \description{
-Create initial origin coordinates using k-means++
+Create initial origin coordinates using k-means++ or greedy k-means++
 }
