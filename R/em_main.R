@@ -1,3 +1,90 @@
+#' Multi-run wrapper for running expectation-maximization using hard or soft node assignments
+#'
+#' @param times The number of times to run the EM algorithm.
+#' @param cond_mean List of conditional means for each tree.
+#' @param cond_var List of conditional variance--covariance matrices for each tree.
+#' @param k The number of ancestry groups to estimate.
+#' @param max_stp The maximum number of steps allowed in the EM algorithm.
+#' @param conv_thresh The difference in observed likelihoods between runs to use as the convergence threshold.
+#' @param lik_equality_tol Value under which likelihoods are considered equivalent.
+#' @param init_method The method to use for initialization of the origin coordinates. The options are "random", "kpp", or "greedy_kpp". The latter two implement k-means++ or greedy k-means++ on the conditional means (default: "random").
+#' @param sp_bounds List of two vectors indicating minimum and maximum x and y values.
+#' @param retain_all_outputs Boolean indicating whether or not to retain all outputs
+#' @param starting_location_seed Optional seed to set when generating initial coordinates.
+#' @param n_cand The number of candidate origins to evaluate during each round of choosing origins. This is only used when method = "greedy_kpp".
+#' @param em_type Run the EM with either hard or soft node assignment (default is hard).
+#'
+#' @returns A list of results from the EM runs.
+#' @export
+#'
+em_wrapper <- function(times = 1,
+                       cond_mean,
+                       cond_var,
+                       k,
+                       max_stp = 20,
+                       conv_thresh = 1e-5,
+                       lik_equality_tol = 1e-6,
+                       init_method = "random",
+                       sp_bounds = NULL,
+                       retain_all_outputs = TRUE,
+                       starting_location_seed = NULL,
+                       n_cand = 3,
+                       em_type = 'hard') {
+  #recover()
+
+  #check that em_type is either hard or soft
+  em_type <- match.arg(em_type,
+                       choices = c('hard', 'soft'),
+                       several.ok = FALSE)
+
+  if (!is.null(starting_location_seed)) {
+    set.seed(starting_location_seed)
+  }
+
+  est_list <- list()
+
+  for (est in seq_len(times)) {
+    est_list[[est]] <- switch(em_type,
+                              'hard' = {
+                                em_hardassign(cond_mean = cond_mean,
+                                              cond_var = cond_var,
+                                              k = k,
+                                              max_stp = max_stp,
+                                              conv_thresh = conv_thresh,
+                                              init_method = init_method,
+                                              sp_bounds = sp_bounds,
+                                              starting_location_seed = NULL,
+                                              n_cand = n_cand)
+                              },
+                              'soft' = {
+                                em_softassign(cond_mean = cond_mean,
+                                              cond_var = cond_var,
+                                              k = k,
+                                              max_stp = max_stp,
+                                              conv_thresh = conv_thresh,
+                                              init_method = init_method,
+                                              sp_bounds = sp_bounds,
+                                              starting_location_seed = NULL,
+                                              n_cand = n_cand)
+                              }
+    )
+
+    message('finished ', est)
+
+  }
+
+
+  process_output_list <- process_em_output(output_list = est_list,
+                                           lik_tol = lik_equality_tol,
+                                           assignment_approach = em_type)
+
+  if (isTRUE(retain_all_outputs)) process_output_list[['extra_info']][['output_list']] <- est_list
+  #if (isTRUE(retain_all_outputs)) process_output_list[['output_list']] <- est_list
+
+  return(process_output_list)
+}
+
+
 #' Multi-run wrapper for running expectation-maximization using hard node assignments
 #'
 #' @param times The number of times to run the EM algorithm.
